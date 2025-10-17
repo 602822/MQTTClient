@@ -10,22 +10,22 @@ import java.io.IOException;
 
 public class MQTTPubClient {
 
-    private final String clientId = MqttClient.generateClientId();
     private final MqttClient publisherClient;
 
     public MQTTPubClient(MqttClient publisherClient) {
         this.publisherClient = publisherClient;
     }
 
-    public void connect(String realm, String clientId, String username, String password) {
+    public void connect() {
 
         try {
-            String token = KeycloakAuth.getToken(realm, clientId, username, password);
-            String broker = "tcp://localhost:8080"; //temporary
+
+            String token = KeycloakAuth.getToken(clientId, clientSecret);
+            String broker = "tcp://localhost:1883"; //dont use localhost in production
             MqttClient publisherClient = new MqttClient(broker, MqttClient.generateClientId(), new MemoryPersistence());
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setCleanSession(true);
-            connOpts.setUserName(username);
+            connOpts.setUserName(clientId);
             connOpts.setPassword(token.toCharArray());
             System.out.println("MQTTPubClient Connecting to broker: " + broker);
             publisherClient.connect(connOpts);
@@ -41,7 +41,9 @@ public class MQTTPubClient {
         } catch (IOException e) {
             System.err.println("An IOException occurred while connecting to the MQTT broker: " + e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("Failed to connect to the MQTT broker", e);
+            throw new RuntimeException("Failed to connect to the MQTT broker" + e.getMessage());
+        } catch (InterruptedException e) {
+            throw new RuntimeException("The connection process was interrupted, error: " + e.getMessage());
         }
 
     }
@@ -57,7 +59,7 @@ public class MQTTPubClient {
                 throw new IllegalStateException("Client is not connected.");
             }
         } catch (MqttException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to publish the message due to an MQTT exception: " + e);
         }
     }
 

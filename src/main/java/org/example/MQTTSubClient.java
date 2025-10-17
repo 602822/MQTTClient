@@ -11,14 +11,14 @@ public class MQTTSubClient {
 
     private MqttClient subscriberClient;
 
-    public void connect(String realm, String clientId, String username, String password) {
+    public void connect() {
         try {
-            String token = KeycloakAuth.getToken(realm, clientId, username, password);
+            String token = KeycloakAuth.getToken(clientId, clientSecret);
             String broker = "tcp://localhost:8080"; // Example broker
             subscriberClient = new MqttClient(broker, MqttClient.generateClientId(), new MemoryPersistence());
             MqttConnectOptions connOpts = new MqttConnectOptions();
-            connOpts.setCleanSession(true);
-            connOpts.setUserName(username);
+            connOpts.setCleanSession(true); 
+            connOpts.setUserName(clientId);
             connOpts.setPassword(token.toCharArray());
             System.out.println("Connecting to broker: " + broker);
             subscriberClient.connect(connOpts);
@@ -27,6 +27,8 @@ public class MQTTSubClient {
             System.err.println("Failed to connect to the MQTT broker: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to connect to the MQTT broker", e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("The connection process was interrupted, error: " + e.getMessage());
         }
     }
 
