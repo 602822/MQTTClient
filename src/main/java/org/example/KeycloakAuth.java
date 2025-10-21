@@ -15,11 +15,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 
 public class KeycloakAuth {
-    public static String getToken(String clientId, String clientSecret) throws IOException, InterruptedException {
+    public static String getTokenSensor(String clientId, String clientSecret) throws IOException, InterruptedException {
 
-       final String KEYCLOAK_REALM = "smartocean-testrealm";
-
-        String urlString = "http://localhost:8080/realms/" + KEYCLOAK_REALM + "/protocol/openid-connect/token"; // change to use HTTPS
+        String urlString = Config.BASE_URL + "/realms/" + Config.KEYCLOAK_REALM + "/protocol/openid-connect/token"; // change to use HTTPS, can't use localhost in production
 
         //client credential flow used for sensors
         String data = "grant_type=client_credentials"
@@ -27,7 +25,11 @@ public class KeycloakAuth {
                 + "&client_secret=" + clientSecret;
 
 
+        return requestToken(urlString, data);
+    }
 
+
+    private static String requestToken(String urlString, String data) throws IOException, InterruptedException {
         HttpClient httpClient = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(urlString))
@@ -36,14 +38,12 @@ public class KeycloakAuth {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
         if(response.statusCode() != 200) {
             throw new IOException("Failed to authenticate: " + response.statusCode() + " " + response.body());
         }
-
         JSONObject json = new JSONObject(response.body());
         return json.getString("access_token");
-
-
     }
+
+
 }
