@@ -55,12 +55,18 @@ public class MQTTPubClient {
         }
     }
 
-    public void disconnect() throws MqttException {
-        if(publisherClient != null && publisherClient.isConnected()) {
-            publisherClient.disconnect();
-            System.out.println("MQTTPubClient Disconnected");
+    public void refreshConnection(String newJwtToken) {
+        try {
+            if (publisherClient != null && publisherClient.isConnected()) {
+                publisherClient.disconnect();
+            }
+            System.out.println("Reconnecting with new JWT token...");
+            connect(newJwtToken);
+        } catch (MqttException e) {
+            System.err.println("Failed to reconnect after token refresh: " + e.getMessage());
         }
     }
+
 
     //Reading simulated temperature sensor data for now
     public double readTemperatureSensor() {
