@@ -15,6 +15,10 @@ public class MQTTPubClient {
         this.clientId = clientId;
     }
 
+    public String getClientId() {
+        return clientId;
+    }
+
     public void connect(String jwtToken) {
 
         try {
@@ -39,12 +43,11 @@ public class MQTTPubClient {
 
     }
 
-    public void publish(double temperature) {
+    public void publish(double temperature, String topic) {
         MqttMessage message = new MqttMessage(String.valueOf(temperature).getBytes());
         message.setQos(1);
         try {
             if (publisherClient != null && publisherClient.isConnected()) {
-                String topic = "sensors/" + clientId + "/temperature";
                 System.out.println("Publishing temperature: " + temperature + " to topic: " + topic);
                 publisherClient.publish(topic, message);
             } else {
