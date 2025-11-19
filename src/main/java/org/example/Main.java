@@ -1,8 +1,5 @@
 package org.example;
 
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Properties;
@@ -16,28 +13,22 @@ public class Main {
         String clientId = props.getProperty("CLIENT_ID");
         String clientSecret = props.getProperty("CLIENT_SECRET");
 
+
         MQTTPubClient sensor = new MQTTPubClient(clientId);
         String jwtToken = KeycloakAuth.getTokenSensor(clientId, clientSecret);
         System.out.println("JwtToken: " + jwtToken);
         sensor.connect(jwtToken);
+        System.out.println("Sensor with ID: " + clientId + " is now connected");
 
-        SignedJWT signedJWT = SignedJWT.parse(jwtToken);
-        JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
-
-        String location = claims.getStringClaim("location");
-        String provider = claims.getStringClaim("provider");
-
-        System.out.println("Sensor:" + clientId + " Location:" + location + " Provider:" + provider);
-
-        //smartocean/{location}/{provider}/{clientId}
-        String topic = String.format("smartocean/%s/%s/%s/temperature", location, provider, clientId);
+        String topic1 = "smartocean/Austevoll/Aanderaa/sensor-1/temperature";
 
 
         while (true) {
             try {
                 double temp = sensor.readTemperatureSensor();
-                sensor.publish(temp, topic);
+                sensor.publish(temp, topic1);
                 Thread.sleep(5000); // Publish every 5 seconds
+
 
                 if (JWTUtils.willExpireSoon(jwtToken, 60)) {
                     System.out.println("JWT is about to expire, refreshing...");
